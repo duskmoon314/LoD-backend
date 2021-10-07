@@ -1,13 +1,23 @@
-FROM rustlang/rust:nightly-alpine AS build
+FROM rustlang/rust:nightly-alpine AS chef
 
-WORKDIR /usr/src/LoD-backend
+RUN cargo install cargo-chef
+WORKDIR /app
+
+FROM chef AS planner
+
 COPY . .
-RUN apk add --no-cach musl-dev && \
-    cargo install --path .
+RUN cargo chef prepare --recipe-path recipe.json
 
+FROM chef AS builder
+
+COPY --from=planner /app/recipe.json recipe.json
+RUN apk add --no-cach musl-dev && \
+    cargo chef cook --release --recipe-path recipe.json
+COPY . .
+RUN cargo install --path .
 # FINAL
 
-FROM rustlang/rust:nightly-alpine
+FROM alpine:latest
 
-COPY --from=build /usr/local/cargo/bin/lod-backend /usr/local/bin/lod-backend
+COPY --from=builder /usr/local/cargo/bin/lod-backend /usr/local/bin/lod-backend
 ENTRYPOINT [ "lod-backend" ]
