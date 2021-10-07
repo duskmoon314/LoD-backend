@@ -14,10 +14,11 @@ FROM chef AS builder
 COPY --from=planner /app/recipe.json recipe.json
 RUN cargo chef cook --release --recipe-path recipe.json
 COPY . .
-RUN cargo install --path .
+RUN cargo build --release --bin lod-backend
+
 # FINAL
 
 FROM alpine:latest
 
-COPY --from=builder /usr/local/cargo/bin/lod-backend /usr/local/bin/lod-backend
+COPY --from=builder /app/target/release/lod-backend /usr/local/bin/lod-backend
 ENTRYPOINT [ "lod-backend" ]
