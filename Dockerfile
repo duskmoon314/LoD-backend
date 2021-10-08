@@ -1,7 +1,5 @@
-FROM rustlang/rust:nightly-alpine AS chef
+FROM duskmoon/cargo-chef:nightly-alpine AS chef
 
-RUN apk add --no-cach musl-dev && \
-    cargo install cargo-chef
 WORKDIR /app
 
 FROM chef AS planner
